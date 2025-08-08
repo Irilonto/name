@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анонимный чат | Подключись к беседе</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Убираем предупреждение ngrok
+        fetch(window.location.href, {
+            headers: { 'ngrok-skip-browser-warning': 'telegram-webapp' }
+        }).catch(() => {});
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Главная страница -->
+        <div class="page active" id="homePage">
+            <header class="header">
+                <h1>Анонимный Чат</h1>
+                <p>Общайтесь без ограничений и сохраняйте анонимность</p>
+            </header>
+
+            <main class="main-content">
+                <div class="theme-selector">
+                    <h2>Выберите тему для общения:</h2>
+                    <div class="themes-grid">
+                        <div class="theme-card selected" data-topic="general">
+                            <div class="theme-icon">💬</div>
+                            <h3>Общее</h3>
+                            <p>Свободное общение на любые темы</p>
+                        </div>
+                        <div class="theme-card" data-topic="love">
+                            <div class="theme-icon">❤️</div>
+                            <h3>Знакомства</h3>
+                            <p>Найдите интересных людей</p>
+                        </div>
+                        <div class="theme-card" data-topic="games">
+                            <div class="theme-icon">🎮</div>
+                            <h3>Игры</h3>
+                            <p>Обсуждение игр и поиск компаний</p>
+                        </div>
+                        <div class="theme-card" data-topic="tech">
+                            <div class="theme-icon">💻</div>
+                            <h3>Технологии</h3>
+                            <p>IT, программирование, гаджеты</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="startChatBtn" class="primary-btn">Начать поиск собеседника</button>
+            </main>
+        </div>
+
+        <!-- Страница профиля -->
+        <div class="page" id="profilePage">
+            <header class="header">
+                <h1>Мой Профиль</h1>
+                <p>Ваша статистика и информация</p>
+            </header>
+
+            <main class="main-content">
+                <div class="profile-info">
+                    <div class="avatar">👤</div>
+                    <h2>Анонимный пользователь</h2>
+                    <p>ID: <span id="userId">123456789</span></p>
+                    
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="chatsCount">42</span>
+                            <span class="stat-label">Чатов</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="rating">4.8</span>
+                            <span class="stat-label">Рейтинг</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="onlineTime">127</span>
+                            <span class="stat-label">Часов</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Страница настроек -->
+        <div class="page" id="settingsPage">
+            <header class="header">
+                <h1>Настройки</h1>
+                <p>Персонализируйте свой опыт</p>
+            </header>
+
+            <main class="main-content">
+                <div class="settings-list">
+                    <div class="setting-item">
+                        <span>Темная тема</span>
+                        <label class="switch">
+                            <input type="checkbox" id="darkThemeToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Уведомления</span>
+                        <label class="switch">
+                            <input type="checkbox" id="notificationsToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Звуки</span>
+                        <label class="switch">
+                            <input type="checkbox" id="soundsToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Очистить историю</span>
+                        <button class="small-btn" id="clearHistoryBtn">Очистить</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <footer class="footer">
+            <nav>
+                <button class="nav-btn active" data-page="home">🏠</button>
+                <button class="nav-btn" data-page="profile">👤</button>
+                <button class="nav-btn" data-page="settings">⚙️</button>
+            </nav>
+        </footer>
+    </div>
+
+    <!-- Оверлей поиска собеседника -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loader"></div>
+            <p>Ищем интересного собеседника...</p>
+            <button id="cancelSearchBtn" class="secondary-btn">Отмена</button>
+        </div>
+    </div>
+
+    <!-- Экран чата -->
+    <div class="chat-screen" id="chatScreen">
+        <div class="chat-header">
+            <button id="backToMainBtn" class="back-btn">←</button>
+            <h3>Анонимный собеседник</h3>
+            <button id="reportBtn" class="report-btn">⚠️</button>
+        </div>
+        <div class="messages-container" id="messagesContainer"></div>
+        <div class="message-input">
+            <input type="text" id="messageInput" placeholder="Напишите сообщение..." autocomplete="off">
+            <button id="sendMessageBtn" class="send-btn">➤</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

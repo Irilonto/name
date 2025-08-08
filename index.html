@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анонимный чат | Подключись к беседе</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Убираем предупреждение ngrok
+        fetch(window.location.href, {
+            headers: { 'ngrok-skip-browser-warning': 'telegram-webapp' }
+        }).catch(() => {});
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Анонимный Чат</h1>
+            <p>Общайтесь без ограничений и сохраняйте анонимность</p>
+        </header>
+
+        <main class="main-content">
+            <!-- Главная страница -->
+            <div class="page active" id="homePage">
+                <div class="theme-selector">
+                    <h2>Выберите тему для общения:</h2>
+                    <div class="themes-grid">
+                        <div class="theme-card selected" data-topic="general">
+                            <div class="theme-icon">💬</div>
+                            <h3>Общее</h3>
+                            <p>Свободное общение на любые темы</p>
+                        </div>
+                        <div class="theme-card" data-topic="love">
+                            <div class="theme-icon">❤️</div>
+                            <h3>Знакомства</h3>
+                            <p>Найдите интересных людей</p>
+                        </div>
+                        <div class="theme-card" data-topic="games">
+                            <div class="theme-icon">🎮</div>
+                            <h3>Игры</h3>
+                            <p>Обсуждение игр и поиск компаний</p>
+                        </div>
+                        <div class="theme-card" data-topic="tech">
+                            <div class="theme-icon">💻</div>
+                            <h3>Технологии</h3>
+                            <p>IT, программирование, гаджеты</p>
+                        </div>
+                    </div>
+                </div>
+                <button id="startChatBtn" class="primary-btn">Начать поиск собеседника</button>
+            </div>
+
+            <!-- Страница профиля -->
+            <div class="page" id="profilePage">
+                <div class="profile-info">
+                    <div class="avatar">👤</div>
+                    <h2>Анонимный пользователь</h2>
+                    <p>Ваш ID: <span id="userId">Неизвестен</span></p>
+                    
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="chatsCount">0</span>
+                            <span class="stat-label">Чатов</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="messagesCount">0</span>
+                            <span class="stat-label">Сообщений</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Страница настроек -->
+            <div class="page" id="settingsPage">
+                <div class="settings-list">
+                    <div class="setting-item">
+                        <span>Уведомления</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Темная тема</span>
+                        <label class="switch">
+                            <input type="checkbox" id="darkThemeToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>О приложении</span>
+                        <button class="small-btn" id="aboutBtn">Инфо</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <nav>
+                <button class="nav-btn active" data-page="home">🏠</button>
+                <button class="nav-btn" data-page="profile">👤</button>
+                <button class="nav-btn" data-page="settings">⚙️</button>
+            </nav>
+        </footer>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loader"></div>
+            <p>Ищем интересного собеседника...</p>
+            <button id="cancelSearchBtn" class="secondary-btn">Отмена</button>
+        </div>
+    </div>
+
+    <div class="chat-screen" id="chatScreen">
+        <div class="chat-header">
+            <button id="backToMainBtn" class="back-btn">←</button>
+            <h3>Анонимный собеседник</h3>
+            <button id="reportBtn" class="report-btn">⚠️</button>
+        </div>
+        <div class="messages-container" id="messagesContainer"></div>
+        <div class="message-input">
+            <input type="text" id="messageInput" placeholder="Напишите сообщение..." autocomplete="off">
+            <button id="sendMessageBtn" class="send-btn">➤</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tg = window.Telegram.WebApp;
+            tg.expand();
+            tg.enableClosingConfirmation();
+
+            // Элементы интерфейса
+            const startChatBtn = document.getElementById('startChatBtn');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const chatScreen = document.getElementById('chatScreen');
+            const backToMainBtn = document.getElementById('backToMainBtn');
+            const sendMessageBtn = document.getElementById('sendMessageBtn');
+            const messageInput = document.getElementById('messageInput');
+            const messagesContainer = document.getElementById('messagesContainer');
+            const themeCards = document.querySelectorAll('.theme-card');
+            const cancelSearchBtn = document.getElementById('cancelSearchBtn');
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const pages = {
+                home: document.getElementById('homePage'),
+                profile: document.getElementById('profilePage'),
+                settings: document.getElementById('settingsPage')
+            };
+            const darkThemeToggle = document.getElementById('darkThemeToggle');
+            const aboutBtn = document.getElementById('aboutBtn');
+            const userIdElement = document.getElementById('userId');
+
+            let selectedTopic = 'general';
+            let currentChatId = null;
+
+            // Инициализация профиля
+            if (tg.initDataUnsafe?.user?.id) {
+                userIdElement.textContent = tg.initDataUnsafe.user.id;
+            }
+
+            // Навигация между страницами
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const pageName = button.dataset.page;
+                    
+                    // Обновляем активные кнопки
+                    navButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // Показываем выбранную страницу
+                    Object.values(pages).forEach(page => page.classList.remove('active'));
+                    pages[pageName].classList.add('active');
+                });
+            });
+
+            // Темная тема
+            if (darkThemeToggle) {
+                darkThemeToggle.addEventListener('change', (e) => {
+                    document.body.classList.toggle('dark-theme', e.target.checked);
+                    // Можно сохранить настройку в localStorage
+                });
+            }
+
+            // Кнопка "О приложении"
+            if (aboutBtn) {
+                aboutBtn.addEventListener('click', () => {
+                    alert('Анонимный чат v1.0\nРазработано для Telegram WebApp');
+                });
+            }
+
+            // Выбор темы
+            themeCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    themeCards.forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    selectedTopic = card.dataset.topic;
+                });
+            });
+
+            // Начать поиск
+            startChatBtn.addEventListener('click', () => {
+                loadingOverlay.style.display = 'flex';
+                
+                tg.sendData(JSON.stringify({
+                    action: 'search_partner',
+                    topic: selectedTopic,
+                    user_id: tg.initDataUnsafe?.user?.id
+                }));
+            });
+
+            // Отмена поиска
+            cancelSearchBtn.addEventListener('click', () => {
+                loadingOverlay.style.display = 'none';
+                tg.sendData(JSON.stringify({ action: 'cancel_search' }));
+            });
+
+            // Отправка сообщения
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (message && currentChatId) {
+                    tg.sendData(JSON.stringify({
+                        action: 'send_message',
+                        chat_id: currentChatId,
+                        text: message
+                    }));
+                    
+                    // Добавляем сообщение в интерфейс
+                    const messageElement = document.createElement('div');
+                    messageElement.className = 'message my-message';
+                    messageElement.textContent = message;
+                    messagesContainer.appendChild(messageElement);
+                    
+                    messageInput.value = '';
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            }
+
+            sendMessageBtn.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            // Возврат на главную
+            backToMainBtn.addEventListener('click', () => {
+                chatScreen.style.display = 'none';
+                document.querySelector('.container').style.display = 'flex';
+                tg.sendData(JSON.stringify({ action: 'leave_chat' }));
+            });
+
+            // Обработка входящих сообщений от бота
+            Telegram.WebApp.onEvent('messageReceived', (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    if (data.action === 'chat_started') {
+                        currentChatId = data.chat_id;
+                        loadingOverlay.style.display = 'none';
+                        document.querySelector('.container').style.display = 'none';
+                        chatScreen.style.display = 'flex';
+                    }
+                    else if (data.action === 'new_message') {
+                        const messageElement = document.createElement('div');
+                        messageElement.className = 'message partner-message';
+                        messageElement.textContent = data.text;
+                        messagesContainer.appendChild(messageElement);
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    }
+                    else if (data.action === 'chat_ended') {
+                        alert('Собеседник покинул чат');
+                        chatScreen.style.display = 'none';
+                        document.querySelector('.container').style.display = 'flex';
+                    }
+                } catch (e) {
+                    console.error('Ошибка обработки сообщения:', e);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
