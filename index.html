@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Анонимный чат | Подключись к беседе</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         // Убираем предупреждение ngrok
@@ -13,16 +14,16 @@
         }).catch(() => {});
     </script>
 </head>
-<body>
+<body class="theme-transition">
     <div class="container">
-        <header class="header">
-            <h1>Анонимный Чат</h1>
-            <p>Общайтесь без ограничений и сохраняйте анонимность</p>
-        </header>
+        <!-- Главная страница -->
+        <div class="page active" id="homePage">
+            <header class="header">
+                <h1>Анонимный Чат</h1>
+                <p>Общайтесь без ограничений и сохраняйте анонимность</p>
+            </header>
 
-        <main class="main-content">
-            <!-- Главная страница -->
-            <div class="page active" id="homePage">
+            <main class="main-content">
                 <div class="theme-selector">
                     <h2>Выберите тему для общения:</h2>
                     <div class="themes-grid">
@@ -48,53 +49,84 @@
                         </div>
                     </div>
                 </div>
-                <button id="startChatBtn" class="primary-btn">Начать поиск собеседника</button>
-            </div>
 
-            <!-- Страница профиля -->
-            <div class="page" id="profilePage">
+                <button id="startChatBtn" class="primary-btn">Начать поиск собеседника</button>
+            </main>
+        </div>
+
+        <!-- Страница профиля -->
+        <div class="page" id="profilePage">
+            <header class="header">
+                <h1>Мой Профиль</h1>
+                <p>Ваша статистика и информация</p>
+            </header>
+
+            <main class="main-content">
                 <div class="profile-info">
                     <div class="avatar">👤</div>
                     <h2>Анонимный пользователь</h2>
-                    <p>Ваш ID: <span id="userId">Неизвестен</span></p>
+                    <p>ID: <span id="userId">123456789</span></p>
                     
                     <div class="stats">
                         <div class="stat-item">
-                            <span class="stat-value" id="chatsCount">0</span>
+                            <span class="stat-value" id="chatsCount">42</span>
                             <span class="stat-label">Чатов</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-value" id="messagesCount">0</span>
-                            <span class="stat-label">Сообщений</span>
+                            <span class="stat-value" id="rating">4.8</span>
+                            <span class="stat-label">Рейтинг</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="onlineTime">127</span>
+                            <span class="stat-label">Часов</span>
                         </div>
                     </div>
                 </div>
-            </div>
+            </main>
+        </div>
 
-            <!-- Страница настроек -->
-            <div class="page" id="settingsPage">
+        <!-- Страница настроек -->
+        <div class="page" id="settingsPage">
+            <header class="header">
+                <h1>Настройки</h1>
+                <p>Персонализируйте свой опыт</p>
+            </header>
+
+            <main class="main-content">
                 <div class="settings-list">
-                    <div class="setting-item">
-                        <span>Уведомления</span>
-                        <label class="switch">
-                            <input type="checkbox" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
                     <div class="setting-item">
                         <span>Темная тема</span>
                         <label class="switch">
-                            <input type="checkbox" id="darkThemeToggle">
+                            <input type="checkbox" id="darkThemeToggle" checked>
                             <span class="slider"></span>
                         </label>
                     </div>
                     <div class="setting-item">
-                        <span>О приложении</span>
-                        <button class="small-btn" id="aboutBtn">Инфо</button>
+                        <span>Уведомления</span>
+                        <label class="switch">
+                            <input type="checkbox" id="notificationsToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Звуки</span>
+                        <label class="switch">
+                            <input type="checkbox" id="soundsToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Очистить историю</span>
+                        <button class="small-btn" id="clearHistoryBtn">Очистить</button>
                     </div>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
+
+        <!-- Кнопка переключения темы -->
+        <div class="theme-switcher" id="themeSwitcher">
+            🌓
+        </div>
 
         <footer class="footer">
             <nav>
@@ -105,6 +137,7 @@
         </footer>
     </div>
 
+    <!-- Оверлей поиска собеседника -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-content">
             <div class="loader"></div>
@@ -113,6 +146,7 @@
         </div>
     </div>
 
+    <!-- Экран чата -->
     <div class="chat-screen" id="chatScreen">
         <div class="chat-header">
             <button id="backToMainBtn" class="back-btn">←</button>
@@ -132,122 +166,161 @@
             tg.expand();
             tg.enableClosingConfirmation();
 
-            // Элементы интерфейса
-            const startChatBtn = document.getElementById('startChatBtn');
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            const chatScreen = document.getElementById('chatScreen');
-            const backToMainBtn = document.getElementById('backToMainBtn');
-            const sendMessageBtn = document.getElementById('sendMessageBtn');
-            const messageInput = document.getElementById('messageInput');
-            const messagesContainer = document.getElementById('messagesContainer');
-            const themeCards = document.querySelectorAll('.theme-card');
-            const cancelSearchBtn = document.getElementById('cancelSearchBtn');
-            const navButtons = document.querySelectorAll('.nav-btn');
-            const pages = {
-                home: document.getElementById('homePage'),
-                profile: document.getElementById('profilePage'),
-                settings: document.getElementById('settingsPage')
+            // Состояние приложения
+            const state = {
+                selectedTopic: 'general',
+                currentChatId: null,
+                isDarkTheme: true // По умолчанию темная тема
             };
-            const darkThemeToggle = document.getElementById('darkThemeToggle');
-            const aboutBtn = document.getElementById('aboutBtn');
-            const userIdElement = document.getElementById('userId');
 
-            let selectedTopic = 'general';
-            let currentChatId = null;
+            // DOM элементы
+            const elements = {
+                startChatBtn: document.getElementById('startChatBtn'),
+                cancelSearchBtn: document.getElementById('cancelSearchBtn'),
+                loadingOverlay: document.getElementById('loadingOverlay'),
+                themeCards: document.querySelectorAll('.theme-card'),
+                chatScreen: document.getElementById('chatScreen'),
+                backToMainBtn: document.getElementById('backToMainBtn'),
+                sendMessageBtn: document.getElementById('sendMessageBtn'),
+                messageInput: document.getElementById('messageInput'),
+                messagesContainer: document.getElementById('messagesContainer'),
+                pages: {
+                    home: document.getElementById('homePage'),
+                    profile: document.getElementById('profilePage'),
+                    settings: document.getElementById('settingsPage')
+                },
+                darkThemeToggle: document.getElementById('darkThemeToggle'),
+                themeSwitcher: document.getElementById('themeSwitcher'),
+                userIdElement: document.getElementById('userId')
+            };
 
-            // Инициализация профиля
-            if (tg.initDataUnsafe?.user?.id) {
-                userIdElement.textContent = tg.initDataUnsafe.user.id;
+            // Инициализация
+            function init() {
+                setupEventListeners();
+                loadUserData();
+                applySavedTheme();
             }
 
-            // Навигация между страницами
-            navButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const pageName = button.dataset.page;
-                    
-                    // Обновляем активные кнопки
-                    navButtons.forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                    
-                    // Показываем выбранную страницу
-                    Object.values(pages).forEach(page => page.classList.remove('active'));
-                    pages[pageName].classList.add('active');
+            // Настройка обработчиков событий
+            function setupEventListeners() {
+                // Выбор темы чата
+                elements.themeCards.forEach(card => {
+                    card.addEventListener('click', () => {
+                        elements.themeCards.forEach(c => c.classList.remove('selected'));
+                        card.classList.add('selected');
+                        state.selectedTopic = card.dataset.topic;
+                    });
                 });
-            });
 
-            // Темная тема
-            if (darkThemeToggle) {
-                darkThemeToggle.addEventListener('change', (e) => {
-                    document.body.classList.toggle('dark-theme', e.target.checked);
-                    // Можно сохранить настройку в localStorage
+                // Чат действия
+                elements.startChatBtn.addEventListener('click', startSearch);
+                elements.cancelSearchBtn.addEventListener('click', cancelSearch);
+                elements.backToMainBtn.addEventListener('click', leaveChat);
+                elements.sendMessageBtn.addEventListener('click', sendMessage);
+                elements.messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') sendMessage();
                 });
+
+                // Навигация
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.addEventListener('click', () => navigate(btn.dataset.page));
+                });
+
+                // Настройки
+                elements.darkThemeToggle.addEventListener('change', toggleTheme);
+                elements.themeSwitcher.addEventListener('click', toggleTheme);
             }
 
-            // Кнопка "О приложении"
-            if (aboutBtn) {
-                aboutBtn.addEventListener('click', () => {
-                    alert('Анонимный чат v1.0\nРазработано для Telegram WebApp');
-                });
+            // Загрузка данных пользователя
+            function loadUserData() {
+                if (tg.initDataUnsafe?.user) {
+                    elements.userIdElement.textContent = tg.initDataUnsafe.user.id;
+                }
             }
 
-            // Выбор темы
-            themeCards.forEach(card => {
-                card.addEventListener('click', () => {
-                    themeCards.forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                    selectedTopic = card.dataset.topic;
-                });
-            });
-
-            // Начать поиск
-            startChatBtn.addEventListener('click', () => {
-                loadingOverlay.style.display = 'flex';
-                
+            // Поиск собеседника
+            function startSearch() {
+                showLoading(true);
                 tg.sendData(JSON.stringify({
                     action: 'search_partner',
-                    topic: selectedTopic,
+                    topic: state.selectedTopic,
                     user_id: tg.initDataUnsafe?.user?.id
                 }));
-            });
+            }
 
             // Отмена поиска
-            cancelSearchBtn.addEventListener('click', () => {
-                loadingOverlay.style.display = 'none';
+            function cancelSearch() {
+                showLoading(false);
                 tg.sendData(JSON.stringify({ action: 'cancel_search' }));
-            });
+            }
 
             // Отправка сообщения
             function sendMessage() {
-                const message = messageInput.value.trim();
-                if (message && currentChatId) {
+                const message = elements.messageInput.value.trim();
+                if (message && state.currentChatId) {
                     tg.sendData(JSON.stringify({
                         action: 'send_message',
-                        chat_id: currentChatId,
+                        chat_id: state.currentChatId,
                         text: message
                     }));
                     
                     // Добавляем сообщение в интерфейс
                     const messageElement = document.createElement('div');
                     messageElement.className = 'message my-message';
-                    messageElement.textContent = message;
-                    messagesContainer.appendChild(messageElement);
+                    messageElement.innerHTML = `
+                        <div class="message-content">${message}</div>
+                        <div class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                    `;
+                    elements.messagesContainer.appendChild(messageElement);
                     
-                    messageInput.value = '';
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    elements.messageInput.value = '';
+                    elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
                 }
             }
 
-            sendMessageBtn.addEventListener('click', sendMessage);
-            messageInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendMessage();
-            });
+            // Навигация по страницам
+            function navigate(pageName) {
+                Object.values(elements.pages).forEach(page => page.classList.remove('active'));
+                elements.pages[pageName].classList.add('active');
+                
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.page === pageName);
+                });
+            }
 
-            // Возврат на главную
-            backToMainBtn.addEventListener('click', () => {
-                chatScreen.style.display = 'none';
-                document.querySelector('.container').style.display = 'flex';
+            // Выход из чата
+            function leaveChat() {
+                elements.chatScreen.style.display = 'none';
+                navigate('home');
                 tg.sendData(JSON.stringify({ action: 'leave_chat' }));
-            });
+            }
+
+            // Переключение темы
+            function toggleTheme() {
+                state.isDarkTheme = !state.isDarkTheme;
+                localStorage.setItem('darkTheme', state.isDarkTheme);
+                applyTheme();
+            }
+
+            // Применение темы
+            function applyTheme() {
+                document.body.classList.toggle('light-theme', !state.isDarkTheme);
+                elements.darkThemeToggle.checked = state.isDarkTheme;
+            }
+
+            // Загрузка сохраненной темы
+            function applySavedTheme() {
+                const savedTheme = localStorage.getItem('darkTheme');
+                if (savedTheme !== null) {
+                    state.isDarkTheme = savedTheme === 'true';
+                }
+                applyTheme();
+            }
+
+            // Показать/скрыть загрузку
+            function showLoading(show) {
+                elements.loadingOverlay.style.display = show ? 'flex' : 'none';
+            }
 
             // Обработка входящих сообщений от бота
             Telegram.WebApp.onEvent('messageReceived', (event) => {
@@ -255,27 +328,37 @@
                     const data = JSON.parse(event.data);
                     
                     if (data.action === 'chat_started') {
-                        currentChatId = data.chat_id;
-                        loadingOverlay.style.display = 'none';
-                        document.querySelector('.container').style.display = 'none';
-                        chatScreen.style.display = 'flex';
+                        state.currentChatId = data.chat_id;
+                        showLoading(false);
+                        elements.chatScreen.style.display = 'flex';
                     }
                     else if (data.action === 'new_message') {
                         const messageElement = document.createElement('div');
                         messageElement.className = 'message partner-message';
-                        messageElement.textContent = data.text;
-                        messagesContainer.appendChild(messageElement);
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        messageElement.innerHTML = `
+                            <div class="message-content">${data.text}</div>
+                            <div class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                        `;
+                        elements.messagesContainer.appendChild(messageElement);
+                        elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
                     }
                     else if (data.action === 'chat_ended') {
-                        alert('Собеседник покинул чат');
-                        chatScreen.style.display = 'none';
-                        document.querySelector('.container').style.display = 'flex';
+                        tg.showPopup({
+                            title: 'Чат завершен',
+                            message: 'Собеседник покинул чат',
+                            buttons: [{ type: 'ok' }]
+                        });
+                        elements.chatScreen.style.display = 'none';
+                        navigate('home');
                     }
                 } catch (e) {
                     console.error('Ошибка обработки сообщения:', e);
+                    tg.showAlert(`Ошибка: ${e.message}`);
                 }
             });
+
+            // Инициализация приложения
+            init();
         });
     </script>
 </body>
