@@ -1,10 +1,21 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const tg = window.Telegram.WebApp;
+    
+    // Инициализация WebApp
     tg.expand();
     tg.enableClosingConfirmation();
+    tg.BackButton.show();
+    tg.BackButton.onClick(handleBackButton);
 
-    // Элементы интерфейса
-    const UI = {
+    // Состояние приложения (теперь темная тема по умолчанию)
+    const state = {
+        selectedTopic: 'general',
+        currentChatId: null,
+        isDarkTheme: true // Изменено на true для темной темы по умолчанию
+    };
+
+    // DOM элементы
+    const elements = {
         startChatBtn: document.getElementById('startChatBtn'),
         cancelSearchBtn: document.getElementById('cancelSearchBtn'),
         loadingOverlay: document.getElementById('loadingOverlay'),
@@ -14,150 +25,82 @@ document.addEventListener('DOMContentLoaded', () => {
         sendMessageBtn: document.getElementById('sendMessageBtn'),
         messageInput: document.getElementById('messageInput'),
         messagesContainer: document.getElementById('messagesContainer'),
-        navButtons: document.querySelectorAll('.nav-btn'),
         pages: {
             home: document.getElementById('homePage'),
             profile: document.getElementById('profilePage'),
             settings: document.getElementById('settingsPage')
         },
         darkThemeToggle: document.getElementById('darkThemeToggle'),
-        clearHistoryBtn: document.getElementById('clearHistoryBtn'),
-        userIdElement: document.getElementById('userId')
-    };
-
-    // Состояние приложения
-    const state = {
-        selectedTopic: 'general',
-        currentChatId: null
+        userIdElement: document.getElementById('userId'),
+        themeSwitcher: document.getElementById('themeSwitcher') // Добавлен переключатель темы
     };
 
     // Инициализация
     function init() {
-        setupThemeSelection();
-        setupChatActions();
-        setupNavigation();
-        setupSettings();
-        initUserProfile();
+        setupEventListeners();
+        loadUserData();
+        applySavedTheme();
     }
 
-    // Выбор темы
-    function setupThemeSelection() {
-        UI.themeCards.forEach(card => {
-            card.addEventListener('click', () => {
-                UI.themeCards.forEach(c => c.classList.remove('selected'));
-                card.classList.add('selected');
-                state.selectedTopic = card.dataset.topic;
-            });
-        });
-    }
-
-    // Действия чата
-    function setupChatActions() {
-        // Начать поиск собеседника
-        UI.startChatBtn.addEventListener('click', () => {
-            UI.loadingOverlay.style.display = 'flex';
-            
-            tg.sendData(JSON.stringify({
-                action: 'search_partner',
-                topic: state.selectedTopic,
-                user_id: tg.initDataUnsafe?.user?.id
-            }));
+    // Настройка обработчиков событий
+    function setupEventListeners() {
+        // Выбор темы
+        elements.themeCards.forEach(card => {
+            card.addEventListener('click', () => selectTopic(card));
         });
 
-        // Отмена поиска
-        UI.cancelSearchBtn.addEventListener('click', () => {
-            UI.loadingOverlay.style.display = 'none';
-            tg.sendData(JSON.stringify({ action: 'cancel_search' }));
-        });
-
-        // Возврат на главную
-        UI.backToMainBtn.addEventListener('click', () => {
-            UI.chatScreen.style.display = 'none';
-            showPage('home');
-            tg.sendData(JSON.stringify({ action: 'leave_chat' }));
-        });
-
-        // Отправка сообщения
-        UI.sendMessageBtn.addEventListener('click', sendMessage);
-        UI.messageInput.addEventListener('keypress', (e) => {
+        // Чат действия
+        elements.startChatBtn.addEventListener('click', startSearch);
+        elements.cancelSearchBtn.addEventListener('click', cancelSearch);
+        elements.backToMainBtn.addEventListener('click', leaveChat);
+        elements.sendMessageBtn.addEventListener('click', sendMessage);
+        elements.messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
         });
-    }
 
-    // Навигация
-    function setupNavigation() {
-        UI.navButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const pageName = btn.dataset.page;
-                showPage(pageName);
-            });
-        });
-    }
-
-    // Показать страницу
-    function showPage(pageName) {
-        // Скрыть все страницы
-        Object.values(UI.pages).forEach(page => {
-            page.classList.remove('active');
-        });
-        
-        // Показать выбранную страницу
-        UI.pages[pageName].classList.add('active');
-        
-        // Обновить активную кнопку в навигации
-        UI.navButtons.forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.page === pageName);
-        });
-    }
-
-    // Настройки
-    function setupSettings() {
-        // Темная тема
-        UI.darkThemeToggle.addEventListener('change', function() {
-            if (this.checked) {
-                enableDarkTheme();
-            } else {
-                disableDarkTheme();
-            }
+        // Навигация
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => navigate(btn.dataset.page));
         });
 
-        // Очистка истории
-        UI.clearHistoryBtn.addEventListener('click', () => {
-            if (confirm('Вы уверены, что хотите очистить историю чатов?')) {
-                alert('История чатов очищена');
-                // Здесь можно добавить реальную очистку истории
-            }
-        });
+        // Настройки
+        elements.darkThemeToggle.addEventListener('change', toggleTheme);
+        elements.themeSwitcher.addEventListener('click', toggleTheme); // Добавлен обработчик для переключателя
     }
 
-    // Темная тема
-    function enableDarkTheme() {
-        document.documentElement.style.setProperty('--light-color', '#1a1a1a');
-        document.documentElement.style.setProperty('--dark-color', '#f5f6fa');
-        document.documentElement.style.setProperty('--card-bg', '#2d2d2d');
-        document.documentElement.style.setProperty('--border-color', '#3d3d3d');
-        document.documentElement.style.setProperty('--chat-bg', '#252525');
-    }
-
-    function disableDarkTheme() {
-        document.documentElement.style.setProperty('--light-color', '#f5f6fa');
-        document.documentElement.style.setProperty('--dark-color', '#2d3436');
-        document.documentElement.style.setProperty('--card-bg', '#ffffff');
-        document.documentElement.style.setProperty('--border-color', '#e0e0e0');
-        document.documentElement.style.setProperty('--chat-bg', '#f0f2f5');
-    }
-
-    // Профиль пользователя
-    function initUserProfile() {
+    // Загрузка данных пользователя
+    function loadUserData() {
         if (tg.initDataUnsafe?.user) {
-            UI.userIdElement.textContent = tg.initDataUnsafe.user.id;
-            // Здесь можно добавить загрузку других данных пользователя
+            elements.userIdElement.textContent = tg.initDataUnsafe.user.id;
         }
+    }
+
+    // Выбор темы чата
+    function selectTopic(card) {
+        elements.themeCards.forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        state.selectedTopic = card.dataset.topic;
+    }
+
+    // Поиск собеседника
+    function startSearch() {
+        showLoading(true);
+        tg.sendData(JSON.stringify({
+            action: 'search_partner',
+            topic: state.selectedTopic,
+            user_id: tg.initDataUnsafe?.user?.id
+        }));
+    }
+
+    // Отмена поиска
+    function cancelSearch() {
+        showLoading(false);
+        tg.sendData(JSON.stringify({ action: 'cancel_search' }));
     }
 
     // Отправка сообщения
     function sendMessage() {
-        const message = UI.messageInput.value.trim();
+        const message = elements.messageInput.value.trim();
         if (message && state.currentChatId) {
             tg.sendData(JSON.stringify({
                 action: 'send_message',
@@ -165,30 +108,84 @@ document.addEventListener('DOMContentLoaded', () => {
                 text: message
             }));
             addMessage(message, true);
-            UI.messageInput.value = '';
+            elements.messageInput.value = '';
         }
     }
 
     // Добавление сообщения в чат
     function addMessage(text, isMyMessage) {
         const messageElement = document.createElement('div');
-        messageElement.className = isMyMessage ? 'message my-message' : 'message partner-message';
-        messageElement.textContent = text;
-        UI.messagesContainer.appendChild(messageElement);
-        UI.messagesContainer.scrollTop = UI.messagesContainer.scrollHeight;
+        messageElement.className = `message ${isMyMessage ? 'my-message' : 'partner-message'}`;
+        messageElement.innerHTML = `
+            <div class="message-content">${text}</div>
+            <div class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+        `;
+        elements.messagesContainer.appendChild(messageElement);
+        elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
     }
 
-    // Обработка входящих сообщений от бота
-    Telegram.WebApp.onEvent('messageReceived', (event) => {
+    // Навигация по страницам
+    function navigate(pageName) {
+        Object.values(elements.pages).forEach(page => page.classList.remove('active'));
+        elements.pages[pageName].classList.add('active');
+        
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.page === pageName);
+        });
+        
+        tg.BackButton[pageName === 'home' ? 'hide' : 'show']();
+    }
+
+    // Обработка кнопки "Назад"
+    function handleBackButton() {
+        navigate('home');
+    }
+
+    // Выход из чата
+    function leaveChat() {
+        elements.chatScreen.style.display = 'none';
+        navigate('home');
+        tg.sendData(JSON.stringify({ action: 'leave_chat' }));
+    }
+
+    // Переключение темы
+    function toggleTheme() {
+        state.isDarkTheme = !state.isDarkTheme;
+        localStorage.setItem('darkTheme', state.isDarkTheme);
+        applyTheme();
+    }
+
+    // Применение темы (обновлено для нового CSS)
+    function applyTheme() {
+        document.body.classList.toggle('light-theme', !state.isDarkTheme);
+        elements.darkThemeToggle.checked = state.isDarkTheme;
+    }
+
+    // Загрузка сохраненной темы (обновлено)
+    function applySavedTheme() {
+        const savedTheme = localStorage.getItem('darkTheme');
+        if (savedTheme !== null) {
+            state.isDarkTheme = savedTheme === 'true';
+        }
+        applyTheme();
+    }
+
+    // Показать/скрыть загрузку
+    function showLoading(show) {
+        elements.loadingOverlay.style.display = show ? 'flex' : 'none';
+    }
+
+    // Обработка входящих сообщений
+    tg.onEvent('messageReceived', (event) => {
         try {
             const data = JSON.parse(event.data);
             
             switch(data.action) {
                 case 'chat_started':
                     state.currentChatId = data.chat_id;
-                    UI.loadingOverlay.style.display = 'none';
-                    showPage('home', false); // Скрываем основной интерфейс
-                    UI.chatScreen.style.display = 'block';
+                    showLoading(false);
+                    navigate('home');
+                    elements.chatScreen.style.display = 'flex';
                     break;
                     
                 case 'new_message':
@@ -196,22 +193,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     break;
                     
                 case 'chat_ended':
-                    alert('Собеседник покинул чат');
-                    UI.chatScreen.style.display = 'none';
-                    showPage('home');
+                    tg.showPopup({
+                        title: 'Чат завершен',
+                        message: 'Собеседник покинул чат',
+                        buttons: [{ type: 'ok' }]
+                    });
+                    elements.chatScreen.style.display = 'none';
+                    navigate('home');
                     break;
             }
         } catch (e) {
             console.error('Ошибка обработки сообщения:', e);
+            tg.showAlert(`Ошибка: ${e.message}`);
         }
     });
-
-    // Обход предупреждения ngrok
-    if (navigator.userAgent.includes('ngrok')) {
-        Object.defineProperty(navigator, 'userAgent', {
-            value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        });
-    }
 
     // Инициализация приложения
     init();
