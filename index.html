@@ -1,365 +1,566 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анонимный чат | Подключись к беседе</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script>
-        // Убираем предупреждение ngrok
-        fetch(window.location.href, {
-            headers: { 'ngrok-skip-browser-warning': 'telegram-webapp' }
-        }).catch(() => {});
-    </script>
-</head>
-<body class="theme-transition">
-    <div class="container">
-        <!-- Главная страница -->
-        <div class="page active" id="homePage">
-            <header class="header">
-                <h1>Анонимный Чат</h1>
-                <p>Общайтесь без ограничений и сохраняйте анонимность</p>
-            </header>
+/* Тёмная тема по умолчанию */
+:root {
+    --primary-color: #7c4dff;
+    --secondary-color: #9575cd;
+    --dark-color: #f5f6fa;         /* Текст */
+    --light-color: #121212;        /* Фон */
+    --success-color: #00b894;
+    --danger-color: #d63031;
+    --warning-color: #fdcb6e;
+    --chat-bg: #1e1e1e;
+    --my-message-bg: #2a3a4d;
+    --partner-message-bg: #2d2d2d;
+    --card-bg: #252525;
+    --border-color: #3d3d3d;
+}
 
-            <main class="main-content">
-                <div class="theme-selector">
-                    <h2>Выберите тему для общения:</h2>
-                    <div class="themes-grid">
-                        <div class="theme-card selected" data-topic="general">
-                            <div class="theme-icon">💬</div>
-                            <h3>Общее</h3>
-                            <p>Свободное общение на любые темы</p>
-                        </div>
-                        <div class="theme-card" data-topic="love">
-                            <div class="theme-icon">❤️</div>
-                            <h3>Знакомства</h3>
-                            <p>Найдите интересных людей</p>
-                        </div>
-                        <div class="theme-card" data-topic="games">
-                            <div class="theme-icon">🎮</div>
-                            <h3>Игры</h3>
-                            <p>Обсуждение игр и поиск компаний</p>
-                        </div>
-                        <div class="theme-card" data-topic="tech">
-                            <div class="theme-icon">💻</div>
-                            <h3>Технологии</h3>
-                            <p>IT, программирование, гаджеты</p>
-                        </div>
-                    </div>
-                </div>
+/* Светлая тема (активируется классом light-theme) */
+.light-theme {
+    --primary-color: #6c5ce7;
+    --secondary-color: #a29bfe;
+    --dark-color: #2d3436;         /* Текст */
+    --light-color: #f5f6fa;        /* Фон */
+    --chat-bg: #f0f2f5;
+    --my-message-bg: #d3edff;
+    --partner-message-bg: #ffffff;
+    --card-bg: #ffffff;
+    --border-color: #e0e0e0;
+}
 
-                <button id="startChatBtn" class="primary-btn">Начать поиск собеседника</button>
-            </main>
-        </div>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Montserrat', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
 
-        <!-- Страница профиля -->
-        <div class="page" id="profilePage">
-            <header class="header">
-                <h1>Мой Профиль</h1>
-                <p>Ваша статистика и информация</p>
-            </header>
+body {
+    background-color: var(--light-color);
+    color: var(--dark-color);
+    line-height: 1.6;
+    overscroll-behavior-y: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
 
-            <main class="main-content">
-                <div class="profile-info">
-                    <div class="avatar">👤</div>
-                    <h2>Анонимный пользователь</h2>
-                    <p>ID: <span id="userId">123456789</span></p>
-                    
-                    <div class="stats">
-                        <div class="stat-item">
-                            <span class="stat-value" id="chatsCount">42</span>
-                            <span class="stat-label">Чатов</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="rating">4.8</span>
-                            <span class="stat-label">Рейтинг</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value" id="onlineTime">127</span>
-                            <span class="stat-label">Часов</span>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
+.theme-transition * {
+    transition: background-color 0.3s ease, 
+                color 0.3s ease,
+                border-color 0.3s ease;
+}
 
-        <!-- Страница настроек -->
-        <div class="page" id="settingsPage">
-            <header class="header">
-                <h1>Настройки</h1>
-                <p>Персонализируйте свой опыт</p>
-            </header>
+.container {
+    max-width: 100%;
+    min-height: calc(100vh - 70px);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
 
-            <main class="main-content">
-                <div class="settings-list">
-                    <div class="setting-item">
-                        <span>Темная тема</span>
-                        <label class="switch">
-                            <input type="checkbox" id="darkThemeToggle" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="setting-item">
-                        <span>Уведомления</span>
-                        <label class="switch">
-                            <input type="checkbox" id="notificationsToggle" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="setting-item">
-                        <span>Звуки</span>
-                        <label class="switch">
-                            <input type="checkbox" id="soundsToggle" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="setting-item">
-                        <span>Очистить историю</span>
-                        <button class="small-btn" id="clearHistoryBtn">Очистить</button>
-                    </div>
-                </div>
-            </main>
-        </div>
+.page {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+}
 
-        <!-- Кнопка переключения темы -->
-        <div class="theme-switcher" id="themeSwitcher">
-            🌓
-        </div>
+.page.active {
+    display: flex;
+}
 
-        <footer class="footer">
-            <nav>
-                <button class="nav-btn active" data-page="home">🏠</button>
-                <button class="nav-btn" data-page="profile">👤</button>
-                <button class="nav-btn" data-page="settings">⚙️</button>
-            </nav>
-        </footer>
-    </div>
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-top: 15px;
+}
 
-    <!-- Оверлей поиска собеседника -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-content">
-            <div class="loader"></div>
-            <p>Ищем интересного собеседника...</p>
-            <button id="cancelSearchBtn" class="secondary-btn">Отмена</button>
-        </div>
-    </div>
+.header h1 {
+    font-size: 2.2rem;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
 
-    <!-- Экран чата -->
-    <div class="chat-screen" id="chatScreen">
-        <div class="chat-header">
-            <button id="backToMainBtn" class="back-btn">←</button>
-            <h3>Анонимный собеседник</h3>
-            <button id="reportBtn" class="report-btn">⚠️</button>
-        </div>
-        <div class="messages-container" id="messagesContainer"></div>
-        <div class="message-input">
-            <input type="text" id="messageInput" placeholder="Напишите сообщение..." autocomplete="off">
-            <button id="sendMessageBtn" class="send-btn">➤</button>
-        </div>
-    </div>
+.header p {
+    color: var(--dark-color);
+    opacity: 0.8;
+    font-size: 0.95rem;
+}
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const tg = window.Telegram.WebApp;
-            tg.expand();
-            tg.enableClosingConfirmation();
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
 
-            // Состояние приложения
-            const state = {
-                selectedTopic: 'general',
-                currentChatId: null,
-                isDarkTheme: true // По умолчанию темная тема
-            };
+.theme-selector {
+    width: 100%;
+    margin-bottom: 30px;
+}
 
-            // DOM элементы
-            const elements = {
-                startChatBtn: document.getElementById('startChatBtn'),
-                cancelSearchBtn: document.getElementById('cancelSearchBtn'),
-                loadingOverlay: document.getElementById('loadingOverlay'),
-                themeCards: document.querySelectorAll('.theme-card'),
-                chatScreen: document.getElementById('chatScreen'),
-                backToMainBtn: document.getElementById('backToMainBtn'),
-                sendMessageBtn: document.getElementById('sendMessageBtn'),
-                messageInput: document.getElementById('messageInput'),
-                messagesContainer: document.getElementById('messagesContainer'),
-                pages: {
-                    home: document.getElementById('homePage'),
-                    profile: document.getElementById('profilePage'),
-                    settings: document.getElementById('settingsPage')
-                },
-                darkThemeToggle: document.getElementById('darkThemeToggle'),
-                themeSwitcher: document.getElementById('themeSwitcher'),
-                userIdElement: document.getElementById('userId')
-            };
+.theme-selector h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+    color: var(--dark-color);
+}
 
-            // Инициализация
-            function init() {
-                setupEventListeners();
-                loadUserData();
-                applySavedTheme();
-            }
+.themes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
 
-            // Настройка обработчиков событий
-            function setupEventListeners() {
-                // Выбор темы чата
-                elements.themeCards.forEach(card => {
-                    card.addEventListener('click', () => {
-                        elements.themeCards.forEach(c => c.classList.remove('selected'));
-                        card.classList.add('selected');
-                        state.selectedTopic = card.dataset.topic;
-                    });
-                });
+.theme-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+}
 
-                // Чат действия
-                elements.startChatBtn.addEventListener('click', startSearch);
-                elements.cancelSearchBtn.addEventListener('click', cancelSearch);
-                elements.backToMainBtn.addEventListener('click', leaveChat);
-                elements.sendMessageBtn.addEventListener('click', sendMessage);
-                elements.messageInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') sendMessage();
-                });
+.theme-card.selected {
+    border: 2px solid var(--primary-color);
+    box-shadow: 0 4px 8px rgba(108, 92, 231, 0.15);
+}
 
-                // Навигация
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.addEventListener('click', () => navigate(btn.dataset.page));
-                });
+.theme-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
 
-                // Настройки
-                elements.darkThemeToggle.addEventListener('change', toggleTheme);
-                elements.themeSwitcher.addEventListener('click', toggleTheme);
-            }
+.theme-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
 
-            // Загрузка данных пользователя
-            function loadUserData() {
-                if (tg.initDataUnsafe?.user) {
-                    elements.userIdElement.textContent = tg.initDataUnsafe.user.id;
-                }
-            }
+.theme-card h3 {
+    margin-bottom: 5px;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
 
-            // Поиск собеседника
-            function startSearch() {
-                showLoading(true);
-                tg.sendData(JSON.stringify({
-                    action: 'search_partner',
-                    topic: state.selectedTopic,
-                    user_id: tg.initDataUnsafe?.user?.id
-                }));
-            }
+.theme-card p {
+    font-size: 0.85rem;
+    color: var(--dark-color);
+    opacity: 0.7;
+}
 
-            // Отмена поиска
-            function cancelSearch() {
-                showLoading(false);
-                tg.sendData(JSON.stringify({ action: 'cancel_search' }));
-            }
+.profile-info {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    background: var(--card-bg);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+}
 
-            // Отправка сообщения
-            function sendMessage() {
-                const message = elements.messageInput.value.trim();
-                if (message && state.currentChatId) {
-                    tg.sendData(JSON.stringify({
-                        action: 'send_message',
-                        chat_id: state.currentChatId,
-                        text: message
-                    }));
-                    
-                    // Добавляем сообщение в интерфейс
-                    const messageElement = document.createElement('div');
-                    messageElement.className = 'message my-message';
-                    messageElement.innerHTML = `
-                        <div class="message-content">${message}</div>
-                        <div class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                    `;
-                    elements.messagesContainer.appendChild(messageElement);
-                    
-                    elements.messageInput.value = '';
-                    elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
-                }
-            }
+.avatar {
+    font-size: 3.5rem;
+    margin-bottom: 15px;
+}
 
-            // Навигация по страницам
-            function navigate(pageName) {
-                Object.values(elements.pages).forEach(page => page.classList.remove('active'));
-                elements.pages[pageName].classList.add('active');
-                
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.page === pageName);
-                });
-            }
+.stats {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
 
-            // Выход из чата
-            function leaveChat() {
-                elements.chatScreen.style.display = 'none';
-                navigate('home');
-                tg.sendData(JSON.stringify({ action: 'leave_chat' }));
-            }
+.stat-item {
+    display: flex;
+    flex-direction: column;
+}
 
-            // Переключение темы
-            function toggleTheme() {
-                state.isDarkTheme = !state.isDarkTheme;
-                localStorage.setItem('darkTheme', state.isDarkTheme);
-                applyTheme();
-            }
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
 
-            // Применение темы
-            function applyTheme() {
-                document.body.classList.toggle('light-theme', !state.isDarkTheme);
-                elements.darkThemeToggle.checked = state.isDarkTheme;
-            }
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--dark-color);
+    opacity: 0.7;
+}
 
-            // Загрузка сохраненной темы
-            function applySavedTheme() {
-                const savedTheme = localStorage.getItem('darkTheme');
-                if (savedTheme !== null) {
-                    state.isDarkTheme = savedTheme === 'true';
-                }
-                applyTheme();
-            }
+.settings-list {
+    width: 100%;
+    max-width: 400px;
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+}
 
-            // Показать/скрыть загрузку
-            function showLoading(show) {
-                elements.loadingOverlay.style.display = show ? 'flex' : 'none';
-            }
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border-color);
+}
 
-            // Обработка входящих сообщений от бота
-            Telegram.WebApp.onEvent('messageReceived', (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    
-                    if (data.action === 'chat_started') {
-                        state.currentChatId = data.chat_id;
-                        showLoading(false);
-                        elements.chatScreen.style.display = 'flex';
-                    }
-                    else if (data.action === 'new_message') {
-                        const messageElement = document.createElement('div');
-                        messageElement.className = 'message partner-message';
-                        messageElement.innerHTML = `
-                            <div class="message-content">${data.text}</div>
-                            <div class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                        `;
-                        elements.messagesContainer.appendChild(messageElement);
-                        elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
-                    }
-                    else if (data.action === 'chat_ended') {
-                        tg.showPopup({
-                            title: 'Чат завершен',
-                            message: 'Собеседник покинул чат',
-                            buttons: [{ type: 'ok' }]
-                        });
-                        elements.chatScreen.style.display = 'none';
-                        navigate('home');
-                    }
-                } catch (e) {
-                    console.error('Ошибка обработки сообщения:', e);
-                    tg.showAlert(`Ошибка: ${e.message}`);
-                }
-            });
+.setting-item:last-child {
+    border-bottom: none;
+}
 
-            // Инициализация приложения
-            init();
-        });
-    </script>
-</body>
-</html>
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.small-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.small-btn:hover {
+    background-color: #5d4fd1;
+    transform: translateY(-1px);
+}
+
+.primary-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 14px 25px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    box-shadow: 0 4px 8px rgba(108, 92, 231, 0.2);
+    width: 100%;
+    max-width: 300px;
+    margin-top: 10px;
+}
+
+.primary-btn:hover {
+    background-color: #5d4fd1;
+}
+
+.primary-btn:active {
+    transform: scale(0.98);
+}
+
+.secondary-btn {
+    background-color: var(--card-bg);
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 15px;
+}
+
+.secondary-btn:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    flex-direction: column;
+}
+
+.light-theme .loading-overlay {
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.loading-content {
+    text-align: center;
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    max-width: 80%;
+}
+
+.loader {
+    border: 4px solid var(--secondary-color);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+.chat-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    flex-direction: column;
+    background-color: var(--chat-bg);
+    z-index: 1001;
+    padding: 10px;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    color: var(--dark-color);
+}
+
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 5px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.message {
+    padding: 12px 15px;
+    border-radius: 18px;
+    max-width: 80%;
+    word-break: break-word;
+    line-height: 1.4;
+    font-size: 0.95rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.2s ease-out;
+    color: var(--dark-color);
+}
+
+.my-message {
+    background-color: var(--my-message-bg);
+    align-self: flex-end;
+    border-bottom-right-radius: 5px;
+}
+
+.partner-message {
+    background-color: var(--partner-message-bg);
+    align-self: flex-start;
+    border-bottom-left-radius: 5px;
+}
+
+.message-input {
+    display: flex;
+    gap: 10px;
+    padding: 5px;
+    background: var(--card-bg);
+    border-radius: 25px;
+}
+
+.message-input input {
+    flex: 1;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 25px;
+    outline: none;
+    font-size: 0.95rem;
+    background: transparent;
+    color: var(--dark-color);
+}
+
+.send-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    background: var(--card-bg);
+    z-index: 1000;
+}
+
+nav {
+    display: flex;
+    justify-content: space-around;
+    background: var(--card-bg);
+    border-radius: 25px;
+    padding: 10px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    padding: 10px 20px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    color: var(--dark-color);
+}
+
+.nav-btn.active {
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page {
+    animation: pageFadeIn 0.3s ease-out;
+}
+
+@media (max-width: 600px) {
+    .header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .themes-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .theme-card {
+        padding: 15px;
+    }
+    
+    .message {
+        max-width: 85%;
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .container {
+        padding-bottom: 80px;
+    }
+    
+    .profile-info, .settings-list {
+        padding: 15px;
+        margin: 10px auto;
+    }
+    
+    .avatar {
+        width: 70px;
+        height: 70px;
+        font-size: 2rem;
+    }
+    
+    .stat-value {
+        font-size: 1.3rem;
+    }
+    
+    .setting-item span {
+        font-size: 0.9rem;
+    }
+}
+
+.theme-switcher {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    z-index: 1001;
+    background: var(--primary-color);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 600px) {
+    .theme-switcher {
+        bottom: 70px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+    }
+}
