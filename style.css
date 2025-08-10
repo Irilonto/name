@@ -1,11 +1,25 @@
+/* Тёмная тема по умолчанию */
 :root {
-    --primary-color: #6c5ce7;
-    --secondary-color: #a29bfe;
-    --dark-color: #2d3436;
-    --light-color: #f5f6fa;
+    --primary-color: #7c4dff;
+    --secondary-color: #9575cd;
+    --dark-color: #f5f6fa;         /* Текст */
+    --light-color: #121212;        /* Фон */
     --success-color: #00b894;
     --danger-color: #d63031;
     --warning-color: #fdcb6e;
+    --chat-bg: #1e1e1e;
+    --my-message-bg: #2a3a4d;
+    --partner-message-bg: #2d2d2d;
+    --card-bg: #252525;
+    --border-color: #3d3d3d;
+}
+
+/* Светлая тема (активируется классом light-theme) */
+.light-theme {
+    --primary-color: #6c5ce7;
+    --secondary-color: #a29bfe;
+    --dark-color: #2d3436;         /* Текст */
+    --light-color: #f5f6fa;        /* Фон */
     --chat-bg: #f0f2f5;
     --my-message-bg: #d3edff;
     --partner-message-bg: #ffffff;
@@ -26,6 +40,13 @@ body {
     color: var(--dark-color);
     line-height: 1.6;
     overscroll-behavior-y: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.theme-transition * {
+    transition: background-color 0.3s ease, 
+                color 0.3s ease,
+                border-color 0.3s ease;
 }
 
 .container {
@@ -36,7 +57,6 @@ body {
     flex-direction: column;
 }
 
-/* Общие стили для всех страниц */
 .page {
     display: none;
     flex-direction: column;
@@ -70,9 +90,9 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
 }
 
-/* Стили главной страницы */
 .theme-selector {
     width: 100%;
     margin-bottom: 30px;
@@ -130,7 +150,6 @@ body {
     opacity: 0.7;
 }
 
-/* Стили страницы профиля */
 .profile-info {
     width: 100%;
     max-width: 400px;
@@ -139,6 +158,7 @@ body {
     padding: 25px;
     border-radius: 15px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
 }
 
 .avatar {
@@ -169,7 +189,6 @@ body {
     opacity: 0.7;
 }
 
-/* Стили страницы настроек */
 .settings-list {
     width: 100%;
     max-width: 400px;
@@ -177,6 +196,7 @@ body {
     padding: 20px;
     border-radius: 15px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
 }
 
 .setting-item {
@@ -244,9 +264,14 @@ input:checked + .slider:before {
     border-radius: 20px;
     font-size: 0.85rem;
     cursor: pointer;
+    transition: all 0.2s;
 }
 
-/* Общие элементы UI */
+.small-btn:hover {
+    background-color: #5d4fd1;
+    transform: translateY(-1px);
+}
+
 .primary-btn {
     background-color: var(--primary-color);
     color: white;
@@ -272,7 +297,7 @@ input:checked + .slider:before {
 }
 
 .secondary-btn {
-    background-color: white;
+    background-color: var(--card-bg);
     color: var(--primary-color);
     border: 2px solid var(--primary-color);
     padding: 10px 20px;
@@ -295,7 +320,7 @@ input:checked + .slider:before {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(0, 0, 0, 0.8);
     display: none;
     justify-content: center;
     align-items: center;
@@ -303,9 +328,13 @@ input:checked + .slider:before {
     flex-direction: column;
 }
 
+.light-theme .loading-overlay {
+    background: rgba(255, 255, 255, 0.95);
+}
+
 .loading-content {
     text-align: center;
-    background: white;
+    background: var(--card-bg);
     padding: 30px;
     border-radius: 15px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -322,7 +351,6 @@ input:checked + .slider:before {
     margin: 0 auto 20px;
 }
 
-/* Стили чата */
 .chat-screen {
     position: fixed;
     top: 0;
@@ -341,10 +369,11 @@ input:checked + .slider:before {
     justify-content: space-between;
     align-items: center;
     padding: 12px 15px;
-    background: white;
+    background: var(--card-bg);
     border-radius: 12px;
     margin-bottom: 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    color: var(--dark-color);
 }
 
 .messages-container {
@@ -366,6 +395,7 @@ input:checked + .slider:before {
     font-size: 0.95rem;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     animation: fadeIn 0.2s ease-out;
+    color: var(--dark-color);
 }
 
 .my-message {
@@ -384,7 +414,7 @@ input:checked + .slider:before {
     display: flex;
     gap: 10px;
     padding: 5px;
-    background: white;
+    background: var(--card-bg);
     border-radius: 25px;
 }
 
@@ -396,6 +426,7 @@ input:checked + .slider:before {
     outline: none;
     font-size: 0.95rem;
     background: transparent;
+    color: var(--dark-color);
 }
 
 .send-btn {
@@ -412,21 +443,20 @@ input:checked + .slider:before {
     justify-content: center;
 }
 
-/* Футер и навигация */
 .footer {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     padding: 10px;
-    background: white;
+    background: var(--card-bg);
     z-index: 1000;
 }
 
 nav {
     display: flex;
     justify-content: space-around;
-    background: white;
+    background: var(--card-bg);
     border-radius: 25px;
     padding: 10px;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
@@ -440,6 +470,7 @@ nav {
     cursor: pointer;
     opacity: 0.5;
     transition: opacity 0.2s;
+    color: var(--dark-color);
 }
 
 .nav-btn.active {
@@ -447,7 +478,6 @@ nav {
     color: var(--primary-color);
 }
 
-/* Анимации */
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -458,7 +488,15 @@ nav {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Адаптивность */
+@keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page {
+    animation: pageFadeIn 0.3s ease-out;
+}
+
 @media (max-width: 600px) {
     .header h1 {
         font-size: 1.8rem;
@@ -481,131 +519,7 @@ nav {
     .container {
         padding-bottom: 80px;
     }
-}
-
-/* Дополнения для страницы профиля */
-.profile-info {
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 25px;
-    background: var(--card-bg);
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--border-color);
-    text-align: center;
-}
-
-.profile-info h2 {
-    color: var(--primary-color);
-    margin-bottom: 10px;
-    font-size: 1.4rem;
-}
-
-.profile-info p {
-    color: var(--dark-color);
-    opacity: 0.8;
-    font-size: 0.9rem;
-    margin-bottom: 20px;
-}
-
-.avatar {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 15px;
-    background-color: var(--secondary-color);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.5rem;
-}
-
-.stats {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 25px;
-    padding-top: 15px;
-    border-top: 1px solid var(--border-color);
-}
-
-.stat-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.stat-value {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--primary-color);
-}
-
-.stat-label {
-    font-size: 0.8rem;
-    color: var(--dark-color);
-    opacity: 0.7;
-    margin-top: 5px;
-}
-
-/* Дополнения для страницы настроек */
-.settings-list {
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 20px;
-    background: var(--card-bg);
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--border-color);
-}
-
-.setting-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.setting-item:last-child {
-    border-bottom: none;
-}
-
-.setting-item span {
-    font-size: 0.95rem;
-    color: var(--dark-color);
-}
-
-.small-btn {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.small-btn:hover {
-    background-color: #5d4fd1;
-    transform: translateY(-1px);
-}
-
-/* Анимация переключения страниц */
-@keyframes pageFadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.page {
-    animation: pageFadeIn 0.3s ease-out;
-}
-
-/* Адаптивность для новых элементов */
-@media (max-width: 600px) {
+    
     .profile-info, .settings-list {
         padding: 15px;
         margin: 10px auto;
@@ -626,11 +540,27 @@ nav {
     }
 }
 
-.main-content {
-    flex: 1;
+.theme-switcher {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    z-index: 1001;
+    background: var(--primary-color);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center; /* Эта строка выравнивает содержимое по вертикали */
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 
+@media (max-width: 600px) {
+    .theme-switcher {
+        bottom: 70px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+    }
+}
